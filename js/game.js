@@ -4862,7 +4862,7 @@ Manager.prototype.initPlatform = function(/*index*/) {
 
 Manager.prototype.update = function() {
   if (this.gotoScores){
-    this.game.state.start('menu');
+    this.game.state.start('scores');
   }
 };
 
@@ -4934,7 +4934,7 @@ var Obstacle = function(game, x, y, key, platformIndex) {
 
   this.body.sprite.key = "obstacle";
 
-  platformIndex = 5;
+  platformIndex = platformIndex === 0 ? 5 : platformIndex-1;
 
   var frames = [];
   var animName = key + "_idle_" + platformIndex;
@@ -5354,7 +5354,6 @@ Player.prototype.shootParticles = function(){
   this.collisionEmitter.gravity = 0;
 
   this.collisionEmitter.start(true, 100, 0, 50);
-  console.log('collision emitter');
 };
 
 
@@ -5427,6 +5426,8 @@ GameOver.prototype = {
 
   },
   create: function () {
+    this.game.world.setBounds(0, 0, this.game.width, this.game.height);
+    
     var style = { font: '65px Arial', fill: '#ffffff', align: 'center'};
     this.titleText = this.game.add.text(this.game.world.centerX,100, 'Game Over!', style);
     this.titleText.anchor.setTo(0.5, 0.5);
@@ -5458,6 +5459,8 @@ Menu.prototype = {
 
   },
   create: function() {
+    this.game.world.setBounds(0, 0, this.game.width, this.game.height);
+
     var tiles = ["toaster", "clock", "pillow", "cup", "teapot"];
 
     var mx = 500;
@@ -5485,10 +5488,10 @@ Menu.prototype = {
     this.sprite.anchor.setTo(0.5, 0.5);
     this.sprite.scale.x = this.sprite.scale.y = 5;
 
-    this.titleText = this.game.add.text(this.game.world.centerX, 300, 'GAME TITLE', style);
+    this.titleText = this.game.add.text(this.game.world.centerX, 350, 'DAYDREAM\nRUNAWAY', style);
     this.titleText.anchor.setTo(0.5, 0.5);
 
-    this.instructionsText = this.game.add.text(this.game.world.centerX, 400, 'Click anywhere to play', 
+    this.instructionsText = this.game.add.text(this.game.world.centerX, 470, 'Click anywhere to play', 
       { font: '20px Arial', fill: '#ffffff', align: 'center'});
 
     this.instructionsText.anchor.setTo(0.5, 0.5);
@@ -5678,7 +5681,7 @@ Tuto.prototype = {
 
   },
   create: function() {
-
+    this.game.world.setBounds(0, 0, this.game.width, this.game.height);
     var cx = this.game.world.centerX;
     var cy = this.game.world.centerY;
  /*
@@ -5695,13 +5698,13 @@ Tuto.prototype = {
     var scores = this.game.add.text(cx, 50, "SCORES", fontTitle);
     scores.anchor.setTo(0.5, 0.5);
 
-    for (var i=0; i<times.length; i++){
+    for (var i=0; i<times.length-1; i++){
       //total+=times[i];
 
       var index = this.game.add.text(cx-10, (cy-180)+(i*30), "World " + (i+1) + ":",fontPartial);
       index.anchor.setTo(1, 0.5);
       
-      var txt = helpers.elapsedFormat(times[i]);
+      var txt = helpers.elapsedFormat(times[i+1]);
       txt = txt.minutes + ":" + txt.seconds + "." + txt.milliseconds;
 
       var partial = this.game.add.text(cx+50, (cy-180)+(i*30), txt , fontPartial);
@@ -5743,6 +5746,7 @@ Tuto.prototype = {
 
   },
   create: function() {
+    this.game.world.setBounds(0, 0, this.game.width, this.game.height);
 
     this.game.add.tileSprite(this.game.world.centerX - 250, this.game.world.centerY - 280, 500, 400, 'tuto');
 

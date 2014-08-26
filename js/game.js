@@ -5031,6 +5031,22 @@ var Player = function(game, x, y, frame) {
 
   this.collisionEmitter = this.game.add.emitter(50, 50, 20);
 
+  this.hurtSound = this.game.add.audio('hurt');
+  this.hurtSound.volume = 0.3;
+  this.pickupSound = this.game.add.audio('pickup');
+  this.pickupSound.volume = 0.3;
+  this.goalSound = this.game.add.audio('goal');
+  this.goalSound.volume = 0.7;
+  this.explosionSound = {
+    sounds: [ this.game.add.audio('explosion1'), this.game.add.audio('explosion2'), this.game.add.audio('explosion3')],
+    play: function(){
+      Phaser.Math.getRandom(this.sounds).play();
+    }
+  };
+  for(var i=0; i < this.explosionSound.sounds.length; i++){
+    this.explosionSound.sounds[i].volume = 0.3;
+  }
+
   this.cam = this.game.add.sprite(this.x, this.y /*, "key"*/);
 };
 
@@ -5376,6 +5392,14 @@ var Target = function(game, x, y, frame) {
 
   this.animations.play('closed');
   this.isOpen = false;
+
+  this.openPortalSound = this.game.add.audio('openPortal');
+  this.openPortalSound.volume = 0.3;
+  
+  this.closePortalSound = this.game.add.audio('closePortal');
+  this.closePortalSound.volume = 0.3;
+
+
 };
 
 Target.prototype = Object.create(Phaser.Sprite.prototype);
@@ -5385,6 +5409,8 @@ Target.prototype.close = function(){
   if (this.isOpen){
     this.animations.play('closed');
     this.isOpen = false;
+    this.closePortalSound.play();
+
   }
 };
 
@@ -5392,6 +5418,7 @@ Target.prototype.open = function() {
   if (!this.isOpen){
     this.animations.play('spining');
     this.isOpen = true;
+    this.openPortalSound.play();
   }
 };
 
@@ -5518,6 +5545,10 @@ var Manager = require('../prefabs/manager'),
 function Play() {}
 Play.prototype = {
   create: function() {
+    
+    this.music = this.game.add.audio('music');
+    this.music.play('',0,0.15,true);
+
     this.game.playerState = new PlayerStateManager();
 
     this.game.physics.startSystem(Phaser.Physics.P2JS);
@@ -5539,6 +5570,7 @@ Play.prototype = {
       if(b.sprite){
         that.capturedKeys++;
         that.board.setKeys(that.capturedKeys, that.neededKeys);
+        mgr.player.pickupSound.play();
         b.sprite.kill();
         var tween = that.game.add.tween(b.sprite);
         tween.to({alpha: 0} , 500, Phaser.Easing.Linear.None, true, 0, false);
@@ -5552,14 +5584,20 @@ Play.prototype = {
     var playerCollidesObstacle = function(){
       if(that.capturedKeys){
         that.capturedKeys--;
+        mgr.player.explosionSound.play();
         that.board.setKeys(that.capturedKeys, that.neededKeys);
 
         mgr.makePlayerDropKey();
+      }
+      else{
+        mgr.player.hurtSound.play();
       }
       mgr.player.shootParticles();
     };
 
     var playerCollidesTarget = function(){
+      mgr.player.goalSound.play();
+
       that.board.finishedPlatform(mgr.current);
       if (!mgr.setCurrentPlatform(mgr.current + 1)){
         return;
@@ -5587,10 +5625,10 @@ Play.prototype = {
     this.board.setKeys(this.capturedKeys, this.neededKeys);
 
     //Changelevel cheat
-    this.upKey = this.game.input.keyboard.addKey(Phaser.Keyboard.UP);
-    this.downKey = this.game.input.keyboard.addKey(Phaser.Keyboard.DOWN);
-    this.upKey.onDown.add(this.getMoveLevel(1), this);
-    this.downKey.onDown.add(this.getMoveLevel(-1), this);
+    // this.upKey = this.game.input.keyboard.addKey(Phaser.Keyboard.UP);
+    // this.downKey = this.game.input.keyboard.addKey(Phaser.Keyboard.DOWN);
+    // this.upKey.onDown.add(this.getMoveLevel(1), this);
+    // this.downKey.onDown.add(this.getMoveLevel(-1), this);
 
   },
   update: function() {
@@ -5651,6 +5689,17 @@ Preload.prototype = {
     this.load.spritesheet("obstacle:teapot", "assets/teapot.png", 50, 50, 36);
     
     this.load.spritesheet('particles', 'assets/particles.png', 10, 10, 4);
+
+    this.load.audio('hurt', 'assets/sounds/hithurt.wav');
+    this.load.audio('pickup', 'assets/sounds/pickup.wav');
+    this.load.audio('goal', 'assets/sounds/goal.wav');
+    this.load.audio('explosion1', 'assets/sounds/explosion1.wav');
+    this.load.audio('explosion2', 'assets/sounds/explosion2.wav');
+    this.load.audio('explosion3', 'assets/sounds/explosion3.wav');
+    this.load.audio('closePortal', 'assets/sounds/closePortal.wav');
+    this.load.audio('openPortal', 'assets/sounds/openPortal.wav');
+
+    this.load.audio('music', 'assets/sounds/music.mp3', 'assets/sounds/music.ogg');
 
     this.load.image('bg', 'assets/bg.png');
     this.load.image('smoke', 'assets/particles/smoke-puff.png');
